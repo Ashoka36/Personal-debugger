@@ -35,7 +35,7 @@ export async function saveGithubToken(userId: number, tokenHash: string, usernam
   console.log("Save GitHub token for user:", userId);
 }
 
-export async function getRepositoriesByUserId(userId: number) {
+export async function getRepositoriesByUserId(userId: number): Promise<Array<{ id: number; owner: string; repo: string; fullName: string; description: string | null; url: string; lastAnalyzedAt: Date | null; createdAt: Date; updatedAt: Date }>> {
   console.log("Get repositories for user:", userId);
   return [];
 }
@@ -44,16 +44,16 @@ export async function saveRepository(userId: number, owner: string, repo: string
   console.log("Save repository:", `${owner}/${repo}`);
 }
 
-export async function getIssuesByRepositoryId(repositoryId: number) { return []; }
-export async function saveIssue(data: any) { return; }
-export async function getTestResultsByRepositoryId(repositoryId: number) { return []; }
+export async function getIssuesByRepositoryId(repositoryId: number): Promise<Array<{ id: number; severity: string; title: string; description: string; lineNumber: number | null; issueType: string; filePath: string; isResolved: number }>> { return []; }
+export async function saveIssue(data: any): Promise<void> { return; }
+export async function getTestResultsByRepositoryId(repositoryId: number): Promise<Array<{ id: number; testName: string; testFile: string; status: string; errorMessage: string | null; duration: number | null }>> { return []; }
 export async function saveTestResult(data: any) { return; }
 export async function createNotification(userId: number, repositoryId: number, type: string, title: string, message: string, issueId?: number) { return; }
-export async function getNotificationsByUserId(userId: number) { return []; }
+export async function getNotificationsByUserId(userId: number): Promise<Array<{ id: number; title: string; message: string; type: string; isRead: number; createdAt: Date }>> { return []; }
 export async function getGitlabTokenByUserId(userId: number) { return undefined; }
 export async function saveGitlabToken(userId: number, tokenHash: string, username: string, gitlabUrl: string = "https://gitlab.com") { return; }
 export async function createRepositorySync(data: any) { return; }
-export async function getRepositorySyncsByUserId(userId: number) { return []; }
+export async function getRepositorySyncsByUserId(userId: number): Promise<Array<{ id: number; sourceType: string; targetType: string; syncStatus: string | null; approvalStatus: string | null; fullName?: string; sourceRepositoryId: number; targetRepoName: string; createdAt: Date; errorMessage: string | null }>> { return []; }
 export async function getRepositorySyncById(syncId: number) { return undefined; }
 export async function updateRepositorySyncStatus(syncId: number, status: string, approvalStatus?: string) { return; }
 export async function approveRepositorySync(syncId: number, approvedBy: string) { return; }

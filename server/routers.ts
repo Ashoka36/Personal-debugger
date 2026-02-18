@@ -60,10 +60,11 @@ const notificationsRouter = router({
 // ── github ────────────────────────────────────────────────────────────────────
 const githubRouter = router({
   saveToken: publicProcedure
-    .input(z.object({ token: z.string(), username: z.string() }))
+    .input(z.object({ token: z.string().optional(), tokenHash: z.string().optional(), username: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const userId = (ctx.user as any)?.id ?? 1;
-      await saveGithubToken(userId, input.token, input.username);
+      const hash = input.tokenHash ?? input.token ?? '';
+      await saveGithubToken(userId, hash, input.username);
       return { success: true };
     }),
   getToken: publicProcedure.query(async ({ ctx }) => {
@@ -75,10 +76,11 @@ const githubRouter = router({
 // ── gitlab ────────────────────────────────────────────────────────────────────
 const gitlabRouter = router({
   saveToken: publicProcedure
-    .input(z.object({ token: z.string(), username: z.string(), gitlabUrl: z.string().optional() }))
+    .input(z.object({ token: z.string().optional(), tokenHash: z.string().optional(), username: z.string(), gitlabUrl: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       const userId = (ctx.user as any)?.id ?? 1;
-      await saveGitlabToken(userId, input.token, input.username, input.gitlabUrl);
+      const hash = input.tokenHash ?? input.token ?? '';
+      await saveGitlabToken(userId, hash, input.username, input.gitlabUrl);
       return { success: true };
     }),
   getToken: publicProcedure.query(async ({ ctx }) => {
@@ -94,7 +96,15 @@ const repositorySyncRouter = router({
     return await getRepositorySyncsByUserId(userId);
   }),
   requestClone: publicProcedure
-    .input(z.object({ sourceRepo: z.string(), targetRepo: z.string(), sourceType: z.string(), targetType: z.string() }))
+    .input(z.object({
+      sourceRepo: z.string().optional(),
+      targetRepo: z.string().optional(),
+      sourceRepoName: z.string().optional(),
+      targetRepoName: z.string().optional(),
+      sourceRepositoryId: z.number().optional(),
+      sourceType: z.string(),
+      targetType: z.string(),
+    }))
     .mutation(async ({ ctx, input }) => {
       const userId = (ctx.user as any)?.id ?? 1;
       await createRepositorySync({ userId, ...input });
@@ -116,14 +126,37 @@ const repositorySyncRouter = router({
     }),
 });
 
+// ── swarm ───────────────────────────────────────────────────────────────────────
+const swarmRouter = router({
+  status: publicProcedure.query(() => ({
+    activeAgents: [] as string[],
+    taskQueue: [] as any[],
+    completedTasks: 0,
+    failedTasks: 0,
+    lastUpdate: new Date(),
+  })),
+  orchestrate: publicProcedure
+    .input(z.object({
+      code: z.string(),
+      language: z.string(),
+      owner: z.string(),
+      repo: z.string(),
+      branch: z.string().optional(),
+      platforms: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      return { success: true, taskId: `task-${Date.now()}` };
+    }),
+});
+
 // ── agent ─────────────────────────────────────────────────────────────────────
 const agentRouter = router({
   metrics: publicProcedure.query(() => ({
     totalAnalyses: 0, totalAnalyzed: 0, issuesFixed: 0, testsImproved: 0, codeQuality: 0, averageFixTime: 0,
   })),
-  strategies: publicProcedure.query(() => ([] as Array<{ successRate: number; name: string }>)),
+  strategies: publicProcedure.query(() => ([] as Array<{ successRate: number; name: string; strategy: string }>)),
   patterns: publicProcedure.query(() => ([] as Array<{ pattern: string; count: number }>)),
-  learning: publicProcedure.query(() => ({ iterations: 0, improvements: [] as string[] })),
+  learning: publicProcedure.query(() => ([] as Array<{ iteration: number; improvement: string; strategy: string; successRate: number }>)),
   analyze: publicProcedure
     .input(z.object({ code: z.string(), language: z.string() }))
     .mutation(async ({ input }) => {
@@ -131,8 +164,8 @@ const agentRouter = router({
       const result = await callGemini(prompt);
       return {
         analysis: result,
-        errors: [] as Array<{ message: string; line: number }>,
-        fixes: [] as Array<{ description: string; code: string }>,
+        errors: [] as Array<{ message: string; line: number; severity: string }>,
+        fixes: [] as Array<{ description: string; code: string; original: string; fixed: string; explanation: string }>,
         issues: [] as string[],
         suggestions: [] as string[],
         confidence: 0.9,
@@ -155,6 +188,7 @@ const authRouter = router({
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
+  swarm: swarmRouter,
   repositories: repositoriesRouter,
   issues: issuesRouter,
   tests: testsRouter,
