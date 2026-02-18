@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "AI Superbrain Debugger",
+  "version": "1.0.0",
+  "description": "Autonomous AI-powered code debugger with swarm agents, CEL rules, and multi-platform deployment",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "webRequest",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://github.com/*",
+    "https://gitlab.com/*",
+    "https://api.github.com/*",
+    "https://gitlab.com/api/v4/*",
+    "https://*.render.com/*",
+    "https://*.vercel.app/*",
+    "https://*.netlify.app/*",
+    "https://*.digitalocean.app/*",
+    "https://*.amazonaws.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Superbrain Debugger",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*", "https://gitlab.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
