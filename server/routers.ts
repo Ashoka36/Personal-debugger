@@ -179,7 +179,13 @@ const authRouter = router({
     return ctx.user ?? null;
   }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    ctx.res.clearCookie(COOKIE_NAME);
+    ctx.res.clearCookie(COOKIE_NAME, {
+      maxAge: -1,
+      secure: true,
+      sameSite: 'none',
+      httpOnly: true,
+      path: '/',
+    });
     return { success: true };
   }),
 });
